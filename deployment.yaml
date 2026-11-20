@@ -6,7 +6,7 @@ metadata:
 spec:
   type: NodePort
   selector:
-    app: wil-playground
+    app: wilS_playground
   ports:
   - port: 8888
     targetPort: 8888
@@ -21,11 +21,11 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: wil-playground
+      app: wilS_playground
   template:
     metadata:
       labels:
-        app: wil-playground
+        app: wilS_playground
     spec:
       containers:
       - name: wil-playground-container
