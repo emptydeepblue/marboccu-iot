@@ -1,0 +1,22 @@
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'libvirt'
+
+Vagrant.configure("2") do |config|
+  config.vm.boot_timeout = 600
+
+  config.vm.box = "rockylinux/10"
+  config.vm.box_url = "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-Vagrant-Libvirt.latest.x86_64.vagrant.libvirt.box"
+
+  config.vm.define "marboccuS" do |master|
+    master.vm.hostname = "marboccuS"
+    master.vm.network "private_network", ip: "192.168.56.110"
+
+    master.vm.provision "shell", path: "scripts/run.sh"
+
+    master.vm.provider "libvirt" do |lv|
+      lv.memory = "2048"
+      lv.cpus = "2"
+      lv.cpu_mode = "host-passthrough"
+      lv.default_prefix = ""
+    end
+  end
+end

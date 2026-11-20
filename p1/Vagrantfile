@@ -1,0 +1,47 @@
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'libvirt'
+
+Vagrant.configure("2") do |config|
+  config.vm.boot_timeout = 600
+  config.vm.synced_folder ".", "/vagrant", type: "nfs", nfs_version: 4, nfs_udp: false
+
+  config.vm.provision "shell", inline: <<-SHELL
+    sudo dnf install -y nmap-ncat
+    sudo systemctl disable --now firewalld
+    echo "192.168.56.110 marboccuS" | sudo tee -a /etc/hosts
+    echo "192.168.56.111 marboccuSW" | sudo tee -a /etc/hosts
+  SHELL
+
+  config.vm.box = "rockylinux/10"
+  config.vm.box_url = "https://dl.rockylinux.org/pub/rocky/10/images/x86_64/Rocky-10-Vagrant-Libvirt.latest.x86_64.vagrant.libvirt.box"
+
+  config.vm.define "marboccuS" do |master|
+    master.vm.hostname = "marboccuS"
+    master.vm.network "private_network", ip: "192.168.56.110"
+    master.vm.network "forwarded_port", guest: 22, host: 2242, id: "ssh"
+
+    master.vm.provision "shell", path: "scripts/k3s_master.sh"
+
+    master.vm.provider "libvirt" do |vb|
+      vb.memory = "2048"
+      vb.cpus = "2"
+      vb.cpu_mode = "host-passthrough"
+      vb.default_prefix = ""
+    end
+  end
+
+  config.vm.define "marboccuSW" do |agent|
+    agent.vm.hostname = "marboccuSW"
+    agent.vm.network "private_network", ip: "192.168.56.111"
+    agent.vm.network "forwarded_port", guest: 22, host: 2200, id: "ssh"
+
+    agent.vm.provision "shell", path: "scripts/k3s_agent.sh", args: ["192.168.56.110"]
+
+    agent.vm.provider "libvirt" do |vb|
+      vb.memory = "1024"
+      vb.cpus = "2"
+      vb.cpu_mode = "host-passthrough"
+      vb.default_prefix = ""
+    end
+  end
+
+end
